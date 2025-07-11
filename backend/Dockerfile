@@ -51,6 +51,9 @@ RUN pip install --no-cache /wheels/*
 # Copy the application code into the final image.
 COPY . .
 
+# Install the backend package in development mode
+RUN pip install -e .
+
 # Copy the start-up script and make it executable
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
