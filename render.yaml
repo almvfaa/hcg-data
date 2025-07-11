@@ -1,0 +1,31 @@
+services:
+  # 1. Servicio para el Backend (FastAPI)
+  - type: web
+    name: hcg-backend
+    env: docker
+    # Asegúrate de que apunte a tu repositorio
+    repo: https://github.com/almvfaa/hcg-data.git
+    dockerfilePath: ./backend/Dockerfile
+    # Define las variables de entorno
+    envVars:
+      - key: DATABASE_URL
+        # IMPORTANTE: Este valor lo debes pegar tú manualmente
+        # en el dashboard de Render como un "Secret".
+        # No lo pongas directamente aquí para mantenerlo seguro.
+        value: "postgresql://inventory_user:DqHSpeLNX8O9qLTZdbmnyydPnfe754vm@dpg-d1ojuj49c44c73fnu3ig-a/inventory_db_iomh"
+      - key: SECRET_KEY
+        generateValue: true # Render generará un valor seguro
+
+  # 2. Servicio para el Frontend (Next.js)
+  - type: web
+    name: hcg-frontend
+    env: docker
+    repo: https://github.com/almvfaa/hcg-data.git
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        # Apunta a la URL pública de tu servicio de backend en Render
+        fromService:
+          type: web
+          name: hcg-backend
+          property: url
