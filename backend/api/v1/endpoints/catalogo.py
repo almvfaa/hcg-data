@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from typing import List
 
-from db.session import get_db
-from crud import crud_articulo
-from schemas import articulo as sc_articulo
+from backend.db.session import get_db
+from backend.crud import crud_articulo
+from backend.schemas import articulo as sc_articulo
 
 router = APIRouter()
 
