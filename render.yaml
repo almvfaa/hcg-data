@@ -1,13 +1,10 @@
 services:
-  # 1. Servicio para el Backend (FastAPI + Alembic)
+  # Servicio del Backend (FastAPI)
   - type: web
     name: hcg-backend
     env: docker
-    # Asegúrate de que apunte a tu repositorio
     repo: https://github.com/almvfaa/hcg-data.git
     dockerfilePath: ./backend/Dockerfile
-    # El comando de inicio ahora está en el Dockerfile (ENTRYPOINT ["/start.sh"])
-    # por lo que la línea 'startCommand' se elimina.
     envVars:
       - key: DATABASE_URL
         # IMPORTANTE: Este valor lo debes pegar tú manualmente
@@ -24,7 +21,7 @@ services:
         # Construimos la URL del frontend manualmente. Render usa el nombre del servicio.
         value: "https://hcg-frontend.onrender.com"
 
-  # 2. Servicio para el Frontend (Next.js)
+  # Servicio del Frontend (Next.js)
   - type: web
     name: hcg-frontend
     env: docker
@@ -32,5 +29,5 @@ services:
     dockerfilePath: ./frontend/Dockerfile
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        # Construimos la URL del backend manualmente.
+        # ✅ CORREGIDO: URL base del backend, sin el /api/v1
         value: "https://hcg-backend.onrender.com"

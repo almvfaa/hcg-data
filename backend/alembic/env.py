@@ -1,11 +1,19 @@
-from logging.config import fileConfig
+import sys
 import os
+from logging.config import fileConfig
+from pathlib import Path
 from dotenv import load_dotenv
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+
+# --- INICIO DEL CÓDIGO A AÑADIR ---
+# Añade la raíz del proyecto al path de Python.
+# Esto permite que Alembic encuentre el módulo 'backend'.
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+# --- FIN DEL CÓDIGO A AÑADIR ---
 
 # Import settings and the Base model from your application
 from backend.db.base import Base # Corrected import path
