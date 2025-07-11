@@ -28,6 +28,12 @@ services:
       - redis
     networks:
       - inventory-network-prod
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - HOME=/home/appuser
+      - APP_HOME=/home/appuser/web
+      - PYTHONPATH=${PYTHONPATH}:${APP_HOME}
 
   worker:
     build: ./backend

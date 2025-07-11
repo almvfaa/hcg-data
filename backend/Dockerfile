@@ -34,6 +34,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV HOME=/home/appuser
 ENV APP_HOME=/home/appuser/web
+ENV PYTHONPATH "${PYTHONPATH}:${APP_HOME}"
 
 # Create the working directory
 RUN mkdir -p $APP_HOME
