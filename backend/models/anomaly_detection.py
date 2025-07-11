@@ -1,7 +1,20 @@
 import pandas as pd
-from sklearn.ensemble import IsolationForest
 
 def run_isolation_forest(df: pd.DataFrame, contamination: float = 0.01) -> pd.DataFrame:
+    """
+    Runs anomaly detection using Isolation Forest.
+    The scikit-learn library is imported on-demand to save memory on application startup.
+    """
+    # --- Lazy Import ---
+    # Import IsolationForest only when this function is called.
+    try:
+        from sklearn.ensemble import IsolationForest
+    except ImportError:
+        raise RuntimeError(
+            "The 'scikit-learn' library is not installed. "
+            "Please install it with 'pip install scikit-learn' to use anomaly detection features."
+        )
+
     # Seleccionar características
     features = df[['cantidad', 'importe_total']].copy()
     

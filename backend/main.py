@@ -4,6 +4,7 @@ from api.v1.api import api_router
 from core.middleware import rate_limit_middleware
 from core.exceptions import http_exception_handler
 from core.logging import app_logger, log_request, log_error
+from core.config import settings
 from starlette.exceptions import HTTPException
 import time
 
@@ -13,14 +14,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Middleware de CORS
+# --- CONFIGURACIÓN DE CORS DINÁMICA ---
+# Lee los orígenes permitidos desde la configuración centralizada.
+# El valor por defecto es "http://localhost:3000".
+# En producción, se debe establecer la variable de entorno BACKEND_CORS_ORIGINS.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost", "http://localhost:3000"],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# --- FIN DE LA CONFIGURACIÓN DE CORS ---
 
 # Middleware de Rate Limiting
 app.middleware("http")(rate_limit_middleware)
@@ -44,7 +49,7 @@ async def logging_middleware(request: Request, call_next):
 app.add_exception_handler(HTTPException, http_exception_handler)
 
 # Router principal
-app.include_router(api_router, prefix="/api/v1")
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
 @app.on_event("startup")
 async def startup_event():

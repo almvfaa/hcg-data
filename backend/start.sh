@@ -1,18 +1,27 @@
 #!/bin/bash
 
-# Establecer variables de entorno
-export PYTHONPATH="${PYTHONPATH}:/home/appuser/web"
-cd /home/appuser/web
+# Exit immediately if a command exits with a non-zero status.
+set -e
 
-echo "Current PYTHONPATH: $PYTHONPATH"
-echo "Current directory: $(pwd)"
-echo "Listing directory contents:"
-ls -la
+# Define the application directory
+APP_DIR="/home/appuser/web"
 
-# Ejecutar las migraciones de la base de datos
-echo "Running database migrations..."
-python -m alembic -c alembic.ini upgrade head
+# Change to the application directory
+cd "$APP_DIR"
 
-# Iniciar el servidor de la aplicación
-echo "Starting Gunicorn server..."
-python -m gunicorn -k uvicorn.workers.UvicornWorker -w 4 -b 0.0.0.0:8000 main:app
+echo "--- Running database migrations ---"
+
+# Run Alembic migrations. The -c flag specifies the config file path.
+# This ensures Alembic can find its configuration regardless of where the script is called from.
+alembic -c "$APP_DIR/alembic.ini" upgrade head
+
+echo "--- Migrations complete ---"
+
+echo "--- Starting Gunicorn server ---"
+
+# Start the Gunicorn server.
+# -w: Number of worker processes
+# -k: The type of worker to use (Uvicorn for FastAPI)
+# -b: The address and port to bind to
+# The last argument is the application instance to run.
+exec gunicorn -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 "main:app"

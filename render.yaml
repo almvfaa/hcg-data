@@ -1,11 +1,13 @@
 services:
-  # 1. Servicio para el Backend (FastAPI)
+  # 1. Servicio para el Backend (FastAPI + Alembic)
   - type: web
     name: hcg-backend
     env: docker
     # Asegúrate de que apunte a tu repositorio
     repo: https://github.com/almvfaa/hcg-data.git
     dockerfilePath: ./backend/Dockerfile
+    # ✅ COMANDO DE INICIO CORRECTO: Primero migra, luego inicia el servidor
+    startCommand: "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 80"
     # Define las variables de entorno
     envVars:
       - key: DATABASE_URL
@@ -15,6 +17,16 @@ services:
         value: "postgresql://inventory_user:DqHSpeLNX8O9qLTZdbmnyydPnfe754vm@dpg-d1ojuj49c44c73fnu3ig-a/inventory_db_iomh"
       - key: SECRET_KEY
         generateValue: true # Render generará un valor seguro
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 120
+      - key: BACKEND_CORS_ORIGINS
+        # ✅ Le dice al backend que acepte peticiones del frontend
+        fromService:
+          type: web
+          name: hcg-frontend
+          property: url
 
   # 2. Servicio para el Frontend (Next.js)
   - type: web
@@ -24,7 +36,7 @@ services:
     dockerfilePath: ./frontend/Dockerfile
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        # Apunta a la URL pública de tu servicio de backend en Render
+        # ✅ Inyecta la URL del backend en el frontend
         fromService:
           type: web
           name: hcg-backend

@@ -34,7 +34,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV HOME=/home/appuser
 ENV APP_HOME=/home/appuser/web
-ENV PYTHONPATH "${PYTHONPATH}:${APP_HOME}"
+ENV PYTHONPATH="${PYTHONPATH}:${APP_HOME}"
 
 # Create the working directory
 RUN mkdir -p $APP_HOME
@@ -51,7 +51,7 @@ RUN pip install --no-cache /wheels/*
 # Copy the application code into the final image.
 COPY . .
 
-# Install the backend package in development mode
+# Install the backend package in editable mode
 RUN pip install -e .
 
 # Copy the start-up script and make it executable
@@ -68,6 +68,6 @@ USER appuser
 # Expose the port the application runs on.
 EXPOSE 8000
 
-# The command to run the application using Gunicorn for production.
-# Note: Ensure 'main:app' matches your application's entrypoint.
-CMD ["/start.sh"]
+# Set the entrypoint to our start-up script.
+# This script will run migrations and then start the server.
+ENTRYPOINT ["/start.sh"]

@@ -1,4 +1,6 @@
 from logging.config import fileConfig
+import os
+from dotenv import load_dotenv
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
@@ -6,8 +8,7 @@ from sqlalchemy import pool
 from alembic import context
 
 # Import settings and the Base model from your application
-from backend.core.config import settings
-from backend.db.base_class import Base # Make sure this path is correct
+from backend.db.base import Base # Corrected import path
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -20,9 +21,18 @@ if config.config_file_name is not None:
 
 # --- Start of Custom Configuration ---
 
-# Set the SQLAlchemy URL from your Pydantic settings object
-# The .replace('%', '%%') is important to escape percentage signs in passwords
-config.set_main_option(
+# Load .env file for local development
+load_dotenv()
+
+# Set the SQLAlchemy URL from the DATABASE_URL environment variable
+# This is crucial for Render and overrides the alembic.ini setting.
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    config.set_main_option('sqlalchemy.url', database_url)
+else:
+    # Fallback for local development if DATABASE_URL is not in .env
+    from backend.core.config import settings
+    config.set_main_option(
     'sqlalchemy.url', 
     settings.SQLALCHEMY_DATABASE_URI.replace('%', '%%')
 )
