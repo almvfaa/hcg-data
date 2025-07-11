@@ -9,11 +9,13 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
+    "noImplicitAny": true, // Enforce explicit 'any'
+    "strictNullChecks": true, // Don't allow 'null' or 'undefined' where not explicitly stated
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler", // Updated for modern tooling
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",

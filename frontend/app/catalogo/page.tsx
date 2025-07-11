@@ -1,89 +1,67 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { DataTable } from '@/components/ui/DataTable';
-import { ColumnDef } from '@tanstack/react-table';
+import { useState, useCallback } from 'react';
+import { useArticulos } from '@/hooks/useArticulos';
+import { Skeleton } from '@/components/ui/Skeleton';
+import ArticuloCard from '@/components/ui/ArticuloCard'; // Import the new memoized component
 import { Input } from '@/components/ui/input';
-
-interface Articulo {
-  codigo_articulo: string;
-  descripcion_articulo: string;
-  unidad_medida: string;
-  partida_especifica: string;
-}
-
-const columns: ColumnDef<Articulo>[] = [
-  {
-    accessorKey: 'codigo_articulo',
-    header: 'Código',
-  },
-  {
-    accessorKey: 'descripcion_articulo',
-    header: 'Descripción',
-  },
-  {
-    accessorKey: 'unidad_medida',
-    header: 'Unidad',
-  },
-  {
-    accessorKey: 'partida_especifica',
-    header: 'Partida Específica',
-  },
-];
-
-async function fetchArticulos(): Promise<Articulo[]> {
-  const res = await fetch('/api/v1/catalogo');
-  if (!res.ok) {
-    throw new Error('Failed to fetch articulos');
-  }
-  return res.json();
-}
+import { useRouter } from 'next/navigation'; // Import the router
 
 export default function CatalogoPage() {
-  const [data, setData] = useState<Articulo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
+  const { data, isLoading, isError, error } = useArticulos({ search });
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const articulos = await fetchArticulos();
-        setData(articulos);
-        setError(null);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const router = useRouter();
 
-    loadData();
-  }, []);
+  // The handleSelect function is wrapped in useCallback.
+  // This ensures that the function reference is stable across re-renders,
+  // preventing the ArticuloCard components from re-rendering unnecessarily.
+  const handleSelect = useCallback((codigo: string) => {
+    // We can add navigation logic here, for example.
+    console.log(`Selected article code: ${codigo}`);
+    // router.push(`/articulos/${codigo}`); // Example of navigation
+  }, [router]); // router is stable, so this function is created only once.
 
-  const filteredData = data.filter(item =>
-    item.descripcion_articulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.codigo_articulo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  if (loading) return <div>Cargando...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (isError) {
+    return (
+      <div className="p-4 bg-red-100 text-red-700 rounded">
+        Error: {error?.message || 'Error desconocido'}
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-6">Catálogo de Artículos</h1>
-       <Input
-          placeholder="Buscar artículos..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm mb-4"
-        />
-      <DataTable
-        columns={columns}
-        data={filteredData}
-        placeholder="Buscar artículos..."
+      <h1 className="text-2xl font-bold mb-4">Catálogo de Artículos</h1>
+      
+      <Input
+        type="text"
+        placeholder="Buscar por descripción o código..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="border rounded p-2 mb-6 w-full max-w-md"
       />
+      
+      {isLoading && !data ? (
+        // Show skeleton loader on initial load
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => <Skeleton key={i} className="w-full h-24 rounded-lg" />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {data?.articulos?.map(articulo => (
+            <ArticuloCard 
+              key={articulo.codigo_articulo} 
+              articulo={articulo} 
+              onSelect={handleSelect} 
+            />
+          ))}
+        </div>
+      )}
+
+      {data?.articulos?.length === 0 && !isLoading && (
+        <p>No se encontraron artículos.</p>
+      )}
     </div>
   );
 }

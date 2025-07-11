@@ -1,23 +1,22 @@
 // frontend/hooks/useArticulos.ts
 import { useQuery } from '@tanstack/react-query';
-import apiClient from '@/lib/axios';
+import apiClient from '@/lib/api'; // Using the new, more robust api client
+import { components } from '@/src/types/api.d'; // Import generated types
 
-// Define the shape of a single article object
-export interface Articulo {
-  codigo_articulo: string;
-  descripcion_articulo: string;
-  unidad_medida: string;
-  // Add other properties from your API response as needed
-}
+// --- Type Definitions ---
+// These types are now sourced directly from the backend's OpenAPI schema.
+// There is no need to manually define them on the frontend anymore.
+type Articulo = components['schemas']['Articulo'];
 
-// Define the shape of the API response
-// This often includes pagination details and the data array
+// We can create a more specific type for the API response if the backend provides it.
+// If not, we can assume it's an array of Articulos.
+// For this example, let's assume the API returns an object with a 'total' and 'articulos' property.
 interface ArticulosApiResponse {
   total: number;
   articulos: Articulo[];
 }
 
-// Define the parameters for the hook
+// Parameters for the hook remain the same.
 interface UseArticulosParams {
   page?: number;
   limit?: number;
@@ -25,21 +24,20 @@ interface UseArticulosParams {
 }
 
 /**
- * Custom hook to fetch and manage a paginated and searchable list of articles.
+ * A fully type-safe custom hook to fetch and manage articles.
+ * It uses types generated directly from the backend's OpenAPI specification.
  * @param {UseArticulosParams} params - The parameters for filtering and pagination.
- * @returns The result of the useQuery hook.
+ * @returns The result of the useQuery hook, strongly typed.
  */
 export const useArticulos = (params: UseArticulosParams = {}) => {
   const { page = 1, limit = 10, search = '' } = params;
 
   return useQuery<ArticulosApiResponse, Error>({
-    // The query key is an array that uniquely identifies this query.
-    // It includes the resource name and any parameters that affect the data.
     queryKey: ['articulos', { page, limit, search }],
     
-    // The query function is responsible for fetching the data.
     queryFn: async () => {
-      // Use the centralized apiClient to make the GET request.
+      // The apiClient is already configured with the base URL.
+      // We pass the generic type to apiClient.get to get a typed response.
       const response = await apiClient.get<ArticulosApiResponse>('/catalogo/articulos', {
         params: {
           skip: (page - 1) * limit,
@@ -47,11 +45,11 @@ export const useArticulos = (params: UseArticulosParams = {}) => {
           search: search,
         }
       });
-      return response; // Axios interceptor already unwraps response.data
+      // The Axios interceptor in api.ts now handles unwrapping the .data property
+      return response.data; 
     },
     
-    // This option is great for paginated tables. It keeps showing the old data
-    // while the new data is being fetched in the background, preventing UI flickering.
+    // Keep previous data for a smoother pagination experience
     placeholderData: (previousData) => previousData,
   });
 };

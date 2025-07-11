@@ -22,5 +22,8 @@ prophet
 celery
 redis
 
+# Configuration Management
+pydantic-settings
+
 # Other
 python-multipart

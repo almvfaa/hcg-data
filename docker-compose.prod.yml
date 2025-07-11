@@ -6,10 +6,9 @@ services:
     container_name: inventory-db-prod
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-inventory_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password}
-      POSTGRES_DB: ${POSTGRES_DB:-inventory_db}
+    # Environment variables are now read from the .env file by the backend
+    env_file:
+      - ./backend/.env
     networks:
       - inventory-network-prod
 
@@ -22,10 +21,8 @@ services:
   backend:
     build: ./backend
     container_name: inventory-backend-prod
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-inventory_user}:${POSTGRES_PASSWORD:-secure_password}@db/${POSTGRES_DB:-inventory_db}
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    env_file:
+      - ./backend/.env
     depends_on:
       - db
       - redis
@@ -35,11 +32,9 @@ services:
   worker:
     build: ./backend
     container_name: inventory-worker-prod
-    command: celery -A worker.celery_app worker --loglevel=info
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-inventory_user}:${POSTGRES_PASSWORD:-secure_password}@db/${POSTGRES_DB:-inventory_db}
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    command: celery -A backend.worker:celery_app worker --loglevel=info
+    env_file:
+      - ./backend/.env
     depends_on:
       - backend
     networks:

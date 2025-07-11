@@ -1,20 +1,48 @@
-# Etapa 1: Construir la aplicación Next.js
-FROM node:20-alpine AS builder
+# ---- Stage 1: Builder ----
+# This stage uses a full Node.js image to build the Next.js application.
+FROM node:18 AS builder
+
+# Set the working directory inside the container.
 WORKDIR /app
 
+# Copy package and lock files to leverage Docker layer caching.
+# This step is only re-run if these files change.
 COPY package*.json ./
-RUN npm install
 
+# Use 'npm ci' (Clean Install) for faster, more reliable builds in CI/CD environments.
+# It installs dependencies directly from the package-lock.json.
+RUN npm ci
+
+# Copy the rest of the application source code.
 COPY . .
+
+# Build the Next.js application for production.
 RUN npm run build
 
-# Etapa 2: Servir con Nginx
-FROM nginx:stable-alpine
 
-# Copiar los archivos estáticos construidos (Next.js exporta a la carpeta 'out')
-COPY --from=builder /app/out /usr/share/nginx/html
+# ---- Stage 2: Production ----
+# This stage uses a lightweight, secure Alpine image for the final container.
+FROM node:18-alpine
 
-# Copiar la configuración personalizada de Nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
 
-CMD ["nginx", "-g", "daemon off;"]
+# Create a non-privileged user and group for security.
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# In a standalone Next.js setup, you'd copy specific folders.
+# This approach copies the necessary artifacts for a standard build.
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=appuser:appgroup /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+# copy next.config.js if it exists and is needed for production runtime
+# COPY --from=builder /app/next.config.js ./next.config.js 
+
+# Switch to the non-privileged user.
+USER appuser
+
+# Expose the port the Next.js application runs on.
+EXPOSE 3000
+
+# The command to start the application in production mode.
+CMD ["npm", "start"]
