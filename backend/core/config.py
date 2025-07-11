@@ -23,23 +23,13 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in self.BACKEND_CORS_ORIGINS.split(",")]
         return self.BACKEND_CORS_ORIGINS
 
-    # PostgreSQL Database Configuration
-    POSTGRES_SERVER: str = "localhost"
-    POSTGRES_USER: str = "inventory_user"
-    POSTGRES_PASSWORD: str = "secure_password"
-    POSTGRES_DB: str = "inventory_db"
+    # Database URL - Pydantic will automatically read this from the environment.
+    # This is the single source of truth for the database connection.
+    DATABASE_URL: str = "postgresql://inventory_user:secure_password@localhost/inventory_db"
     
     # Celery Configuration
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
-    
-    @property
-    def SQLALCHEMY_DATABASE_URI(self) -> str:
-        """Construct the SQLAlchemy database URI from components."""
-        return (
-            f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
-            f"@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
-        )
 
     model_config = SettingsConfigDict(
       case_sensitive=True, 

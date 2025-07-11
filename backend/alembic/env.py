@@ -1,22 +1,12 @@
-import sys
-import os
 from logging.config import fileConfig
-from pathlib import Path
-from dotenv import load_dotenv
-
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 from alembic import context
 
-# --- INICIO DEL CÓDIGO A AÑADIR ---
-# Añade la raíz del proyecto al path de Python.
-# Esto permite que Alembic encuentre el módulo 'backend'.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-# --- FIN DEL CÓDIGO A AÑADIR ---
-
-# Import settings and the Base model from your application
-from backend.db.base import Base # Corrected import path
+# --- Importaciones Corregidas ---
+# PYTHONPATH está establecido en el Dockerfile, por lo que estas importaciones funcionan.
+from core.config import settings
+from db.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -27,29 +17,13 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# --- Start of Custom Configuration ---
+# ✅ Usa la URL de la base de datos desde tus variables de entorno, no desde alembic.ini
+# Esto es CRÍTICO para que funcione en Render.
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
-# Load .env file for local development
-load_dotenv()
-
-# Set the SQLAlchemy URL from the DATABASE_URL environment variable
-# This is crucial for Render and overrides the alembic.ini setting.
-database_url = os.getenv("DATABASE_URL")
-if database_url:
-    config.set_main_option('sqlalchemy.url', database_url)
-else:
-    # Fallback for local development if DATABASE_URL is not in .env
-    from backend.core.config import settings
-    config.set_main_option(
-    'sqlalchemy.url', 
-    settings.SQLALCHEMY_DATABASE_URI.replace('%', '%%')
-)
-
-# Point Alembic to your models' metadata
-# This is the most important line, it allows autogenerate to detect model changes.
+# add your model's MetaData object here
+# for 'autogenerate' support
 target_metadata = Base.metadata
-
-# --- End of Custom Configuration ---
 
 
 def run_migrations_offline() -> None:
@@ -78,8 +52,9 @@ def run_migrations_online() -> None:
     In this scenario we need to create an Engine
     and associate a connection with the context.
     """
+    # engine_from_config usa la URL que establecimos arriba
     connectable = engine_from_config(
-        config.get_section(config.config_main_section, {}),
+        config.get_section("alembic", {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
