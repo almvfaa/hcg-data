@@ -1,12 +1,26 @@
+# Core web framework and server
 fastapi
 uvicorn
+gunicorn
+
+# Database and ORM
 sqlalchemy
 psycopg2-binary
-passlib
-python-jose
-python-multipart
-gunicorn
+alembic
+
+# Authentication and Security
+passlib[bcrypt]
+python-jose[cryptography]
+
+# Data processing and specific features
 pandas
 python-dotenv
 scikit-learn
 prophet
+
+# Asynchronous Tasks
+celery
+redis
+
+# Other
+python-multipart

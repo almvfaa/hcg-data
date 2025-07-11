@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import Sidebar from '@/components/layout/Sidebar';
 import TopBar from '@/components/layout/TopBar';
 import { AnimatePresence } from 'framer-motion';
+import QueryProvider from '@/providers/QueryProvider'; // Import the new provider
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,17 +21,19 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <div className="flex-1 flex flex-col">
-            <TopBar />
-            <main className="flex-1 p-6 bg-gray-50">
-              <AnimatePresence mode="wait">
-                {children}
-              </AnimatePresence>
-            </main>
+        <QueryProvider>
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <div className="flex-1 flex flex-col">
+              <TopBar />
+              <main className="flex-1 p-6 bg-gray-50">
+                <AnimatePresence mode="wait">
+                  {children}
+                </AnimatePresence>
+              </main>
+            </div>
           </div>
-        </div>
+        </QueryProvider>
       </body>
     </html>
   );

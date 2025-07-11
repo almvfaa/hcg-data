@@ -8,6 +8,7 @@ WORKDIR /app
 RUN addgroup --system app && adduser --system --group app
 
 # Copiar e instalar dependencias primero para caché
+# We only copy and install production requirements into the final image
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

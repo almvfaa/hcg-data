@@ -1,0 +1,48 @@
+# .github/workflows/deploy.yml
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main  # Or 'master', depending on your default branch
+
+jobs:
+  # This job will only run if another workflow named 'Backend CI'
+  # has successfully completed on the same commit.
+  # Make sure the `name` in your CI workflow file matches.
+  deploy:
+    # You might need to adjust this depending on the name of your CI workflow and job
+    # needs: build-and-test # Assuming your CI job is named 'build-and-test'
+    runs-on: ubuntu-latest
+    if: success() # Ensures this runs only if the preceding jobs in the CI workflow were successful
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Server and Run Migrations
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            # Navigate to the project directory on your server
+            # IMPORTANT: Change this to your project's actual path
+            cd ~/your-inventory-system-project
+
+            # Pull the latest changes from the main branch
+            echo ">>> Pulling latest code..."
+            git pull origin main
+
+            # Rebuild and restart services using the production compose file
+            echo ">>> Rebuilding and restarting Docker services..."
+            docker-compose -f docker-compose.prod.yml up -d --build
+
+            # Apply database migrations
+            echo ">>> Applying database migrations..."
+            docker-compose -f docker-compose.prod.yml exec -T backend alembic upgrade head
+
+            echo ">>> Deployment successful!"
+

@@ -1,0 +1,14 @@
+# Include all production dependencies
+-r requirements.txt
+
+# --- Development and Testing Tools ---
+
+# Testing framework
+pytest
+
+# Code formatting
+black
+
+# Linting and style checking
+flake8
+flake8-bugbear
