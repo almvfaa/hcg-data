@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: inventory-db-prod
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-inventory_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-inventory_db}
+    networks:
+      - inventory-network-prod
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: inventory-backend-prod
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-inventory_user}:${POSTGRES_PASSWORD:-secure_password}@db:5432/${POSTGRES_DB:-inventory_db}
+    depends_on:
+      - db
+    networks:
+      - inventory-network-prod
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: inventory-gateway-prod
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - inventory-network-prod
+    restart: unless-stopped
+
+volumes:
+  postgres_data_prod:
+
+networks:
+  inventory-network-prod:
+    driver: bridge
