@@ -50,6 +50,7 @@ RUN pip install --no-cache /wheels/*
 
 # Copy the application code into the final image.
 COPY . .
+COPY .env /home/appuser/web/.env
 
 # Copy the start-up script and make it executable
 COPY start.sh /start.sh
