@@ -51,8 +51,13 @@ RUN pip install --no-cache /wheels/*
 # Copy the application code into the final image.
 COPY . .
 
+# Copy the start-up script and make it executable
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 # Change ownership of the app directory to the non-privileged user.
 RUN chown -R appuser:app $APP_HOME
+RUN chown appuser:app /start.sh
 
 # Switch to the non-privileged user.
 USER appuser
@@ -62,4 +67,4 @@ EXPOSE 8000
 
 # The command to run the application using Gunicorn for production.
 # Note: Ensure 'main:app' matches your application's entrypoint.
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "4", "-b", "0.0.0.0:8000", "main:app"]
+CMD ["/start.sh"]
