@@ -1,8 +1,8 @@
 # backend/tasks/modeling_tasks.py
 import pandas as pd
-from ..worker import celery_app
-from ..services.segmentation import SegmentationService
-from ..db.session import SessionLocal
+from worker import celery_app
+from services.segmentation import SegmentationService
+from db.session import SessionLocal
 
 @celery_app.task(name="tasks.run_abc_analysis_task")
 def run_abc_analysis_task() -> list:

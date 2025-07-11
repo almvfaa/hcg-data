@@ -1,5 +1,5 @@
 # backend/worker.py
-from ..core.config import settings
+from core.config import settings
 from celery import Celery
 
 # Create the Celery app instance using URLs from the centralized settings
