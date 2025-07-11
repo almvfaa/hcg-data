@@ -10,6 +10,12 @@ RUN npm install
 
 # Copiar código fuente y construir
 COPY . .
+
+# Argumento para la URL del API, que será pasado por Render
+ARG NEXT_PUBLIC_API_URL
+# Establecer la variable de entorno para que el comando de build la use
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
 RUN npm run build
 
 # Etapa de producción
